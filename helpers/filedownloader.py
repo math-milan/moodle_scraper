@@ -1,5 +1,5 @@
 # Import required libraries
-import requests, re
+import requests, re, os
 
 # Set the maximum file size to be downloaded to 200MB
 MAX_SIZE = 2e8
@@ -94,6 +94,9 @@ def try_download_file(url : str, dst : str, s : requests.sessions.Session = None
         # If a file name is found, append it to the destination path
         if fname:
             dst = dst + "/" + fname
+
+        if os.path.exists(dst):
+            return True
         
         # Open the destination file in binary write mode and write the response in chunks of 1024 bytes
         try:
