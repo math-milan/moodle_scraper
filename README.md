@@ -7,8 +7,7 @@ Before using Moodle Downloader, you must have Python 3 installed on your system.
 
 In addition, Moodle Downloader requires the following Python libraries to be installed:
 
-    requests
-    beautifulsoup4
+pip3 install requests beautifulsoup4
 
 Installation
 
