@@ -20,9 +20,11 @@ class Resources():
     html_header : dict = None
     html_status : bool = None
 
+    resources = None
+
     def __init__(self, name : str, url : str, session : requests.sessions.Session, forcetype : ResourceTypes=None) -> None:
         self.name, self.url, self.session, self.forcetype = name, url, session, forcetype
-        
+        self.resources = []
         self.__get_html__()
         if not self.html_status:
             return None
@@ -79,18 +81,34 @@ class Resources():
             self.name = __get_file_name_from_header__(self.html_header)
         
     def __get_resurce__(self):
-        if not self.resource_type == ResourceTypes.FOLDER:
-            return None
-        result = __bs_find_serach__(self.html, CONFIG["MOODLE_FOLDER"]["region_tag"], CONFIG["MOODLE_FOLDER"]["region_type"], CONFIG["MOODLE_FOLDER"]["region_type_value"])
-        result = __bs_find_all_search__(str(result), CONFIG["MOODLE_FOLDER"]["content_tag"], CONFIG["MOODLE_FOLDER"]["content_type"], CONFIG["MOODLE_FOLDER"]["content_type_value"])
-        for i in result:
-            try:
-                href = i["href"]
-            except KeyError:
-                print(self.url, f"{bcolors.FAIL}KeyError{bcolors.ENDC}")
-            name = __bs_find_serach__(str(i), CONFIG["MOODLE_FOLDER"]["name_tag"], CONFIG["MOODLE_FOLDER"]["name_type"], CONFIG["MOODLE_FOLDER"]["name_type_value"]).text
-            if name != None:
-                self.resources.append(Resources(name, href, self.session, ))
+        if self.resource_type == ResourceTypes.FOLDER:
+            result = __bs_find_serach__(self.html, CONFIG["MOODLE_FOLDER"]["region_tag"], CONFIG["MOODLE_FOLDER"]["region_type"], CONFIG["MOODLE_FOLDER"]["region_type_value"])
+            result = __bs_find_all_search__(str(result), CONFIG["MOODLE_FOLDER"]["content_tag"], CONFIG["MOODLE_FOLDER"]["content_type"], CONFIG["MOODLE_FOLDER"]["content_type_value"])
+            for i in result:
+                try:
+                    href = i["href"]
+                except KeyError:
+                    print(self.url, f"{bcolors.FAIL}KeyError{bcolors.ENDC}")
+                name = __bs_find_serach__(str(i), CONFIG["MOODLE_FOLDER"]["name_tag"], CONFIG["MOODLE_FOLDER"]["name_type"], CONFIG["MOODLE_FOLDER"]["name_type_value"]).text
+                if name != None:
+                    self.resources.append(Resources(name, href, self.session, ))
+        elif self.resource_type == ResourceTypes.ASSIGNMENT:
+            result = __bs_find_serach__(self.html, CONFIG["MOODLE_ASSIGNMENT"]["region_tag"], CONFIG["MOODLE_ASSIGNMENT"]["region_type"], CONFIG["MOODLE_ASSIGNMENT"]["region_type_value"])
+            result = __bs_find_all_search__(str(result), CONFIG["MOODLE_ASSIGNMENT"]["content_tag"], CONFIG["MOODLE_ASSIGNMENT"]["content_type"], CONFIG["MOODLE_ASSIGNMENT"]["content_type_value"])
+                      
+            for i in result:
+
+                try:
+                    href = i["href"]
+                except KeyError:
+                    print(self.url, f"{bcolors.FAIL}KeyError{bcolors.ENDC}")
+                if CONFIG["MOODLE_ASSIGNMENT"]["name_tag"] == "":
+                    name = i.text
+                    pass    
+                else:
+                    name = __bs_find_serach__(str(i), CONFIG["MOODLE_ASSIGNMENT"]["name_tag"], CONFIG["MOODLE_ASSIGNMENT"]["name_type"], CONFIG["MOODLE_ASSIGNMENT"]["name_type_value"]).text
+                if name != None and href != None:
+                    self.resources.append(Resources(name, href, self.session))
 
     def __str__(self) -> str:
         s = ""
@@ -209,8 +227,6 @@ class MoodleCourse():
     html : str = None
     html_status : bool = None
 
-    download_path : str = None
-
     def __init__(self, name : str, url : str, session : requests.sessions.Session) -> None:
         """Initialize the moodle course with the given name and url"""
         self.name, self.url, self.session = name, url, session
@@ -290,6 +306,8 @@ class Moodle():
 
     moodel_courses : List[MoodleCourse] = []
 
+    download_path : str = None
+
     def __init__(self, config_path : str = "config.ini") -> None:
         """Initialize the moodel class with the given config file"""
         path = config_path
@@ -326,7 +344,7 @@ class Moodle():
             "logintoken": self.token
         }
         r = __post_request__(login_url, login_data, self.session)
-        if r.ok:
+        if r.ok: # dose not check if the login was successful Need to be fixed
             return True
         else:
             return False
@@ -348,13 +366,13 @@ class Moodle():
             print("Error: Failed to get courses")
             sys.exit(1)
         
-        # course = courses_urls[1]
-        # moodle_course = MoodleCourse(course["name"], course["links"][0], self.session)
-        # self.moodel_courses.append(moodle_course)
+        course = courses_urls[0]
+        moodle_course = MoodleCourse(course["name"], course["links"][0], self.session)
+        self.moodel_courses.append(moodle_course)
         for course in courses_urls:
             print(f"{bcolors.FAIL}Start downloading course: " + course["name"] + f"{bcolors.ENDC}")
             moodle_course = MoodleCourse(course["name"], course["links"][0], self.session)
-            
+          
             self.moodel_courses.append(moodle_course)
     
     def __str__(self) -> str:

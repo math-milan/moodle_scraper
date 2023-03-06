@@ -3,7 +3,6 @@ user = user
 pwd = pwd
 account_path = account.json
 download_path = downloads/
-
 [MOODLE_URLS]
 base_url = https://moodle.rbz-technik.de/
 login_url = login/index.php
@@ -52,4 +51,15 @@ content_type_value =
 name_tag = span
 name_type = class
 name_type_value = fp-filename
+
+[MOODLE_ASSIGNMENT]
+region_tag = div
+region_type = class
+region_type_value = box py-3 generalbox boxaligncenter
+content_tag = a
+content_type = 
+content_type_value = 
+name_tag = 
+name_type = 
+name_type_value = 
 

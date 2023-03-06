@@ -68,8 +68,27 @@ def __get_file_name_from_header__(header):
     # Otherwise, return the first file name found
     return fname[0].replace('"', '')
 
+def filepath(s):
+    # Replace any non-alphanumeric characters with underscores 
+    s = re.sub('[^0-9a-zA-Z]+', '_', s)
+
+    # Remove duplicate underscores
+    s = re.sub('_+', '_', s)
+
+    # Convert all characters to lowercase
+    s = s.lower()
+
+    # replace the last underscore with a dot
+    for i in range(len(s) - 1, 0, -1):
+        if s[i] == '_':
+            s = s[:i] + '.' + s[i + 1:]
+            break
+
+    # Return the resulting string
+    return s
+
 # Define the main function to download a file from a URL to a local destination
-def try_download_file(url : str, dst : str, s : requests.sessions.Session = None, give_warning = True):
+def try_download_file(url : str, dst : str, s : requests.sessions.Session = None, give_warning = True, timeout = 3):
     """
     Download a file from a url to a destination
     """
@@ -86,6 +105,13 @@ def try_download_file(url : str, dst : str, s : requests.sessions.Session = None
         if give_warning:
             print(f"{FAIL}SSL Error, no valid certificate{ENDC}")
         return False
+    except requests.exceptions.MissingSchema:
+        return False
+    except requests.exceptions.ReadTimeout:
+        if give_warning:
+            print(f"{FAIL}Timeout, discard request. URL: {url}{ENDC}")
+        return False
+
     # Check if the resource is downloadable and small enough to download
     if __is_downloadable__(r.headers) and __smaler_then_max_size__(r.headers):
         # Extract the file name from the HTTP header
@@ -94,6 +120,9 @@ def try_download_file(url : str, dst : str, s : requests.sessions.Session = None
         # If a file name is found, append it to the destination path
         if fname:
             dst = dst + "/" + fname
+        else:
+            return False
+        
 
         if os.path.exists(dst):
             return True
@@ -108,6 +137,8 @@ def try_download_file(url : str, dst : str, s : requests.sessions.Session = None
             if give_warning:
                 print(f"{FAIL}Permission denied{ENDC}")
             return False
+        except FileNotFoundError:
+            pass
         
         # Return True to indicate that the download was successful
         return True

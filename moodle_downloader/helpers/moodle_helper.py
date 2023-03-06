@@ -36,7 +36,7 @@ def __get_request__(url, session, discard = True) -> requests.models.Response:
         r = session.get(url)
     except requests.exceptions.ConnectionError:
         # Print an error message if the connection fails.
-        print(f"Error: Failed to connect to server. Maby the URL is wrong? {url[0:30]}")
+        print(f"Error: Failed to connect to server. Maby the URL is wrong? {url}")
         if discard:
             # Exit the script with an error code if discard is True.
             sys.exit(1)
@@ -73,7 +73,7 @@ def filepath(s):
     # Return the resulting string
     return s
 
-# Define a class for colored output in the terminal.
+# Define a class for colored output in the terminal. The color codes are in the ANSI escape code format.
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
