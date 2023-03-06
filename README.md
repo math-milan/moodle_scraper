@@ -19,6 +19,7 @@ To use Moodle Downloader, you must provide it with the following information:
     The root Moodle API
     Your Moodle username
     Your Moodle password
+    The URL to the Course seite
 
 To run Moodle Downloader, open a command prompt or terminal and navigate to the directory where you saved the script. Then, run the following command:
 
