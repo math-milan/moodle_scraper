@@ -1,5 +1,7 @@
 Moodle Downloader
 
+The Downloader is testeted on Moodle 3.9.5+ Build 20210319
+
 Moodle Downloader is a Python script that allows you to download resources from Moodle courses. With this script, you can easily download all the files from a course in just a few clicks.
 Requirements
 
@@ -23,7 +25,7 @@ To use Moodle Downloader, you must provide it with the following information:
 
 To run Moodle Downloader, open a command prompt or terminal and navigate to the directory where you saved the script. Then, run the following command:
 
-python3 main.py
+    python3 main.py
 
 Follow the prompts to enter your Moodle credentials and the URL of the course you want to download files from.
 
