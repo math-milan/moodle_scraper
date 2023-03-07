@@ -15,6 +15,7 @@ To install Moodle Downloader, simply download the script from this repository an
 
 Usage:
 To use Moodle Downloader, you must provide it with the following information:
+
     The root Moodle API
     Your Moodle username
     Your Moodle password
