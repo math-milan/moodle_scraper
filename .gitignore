@@ -1,2 +1,4 @@
 /downloads/
-config.ini
+/moodle_downloader/config.ini
+/moodle_downloader/__pycache__/
+/moodle_downloader/helpers/__pycache__/
