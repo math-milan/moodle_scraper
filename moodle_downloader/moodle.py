@@ -4,6 +4,9 @@ from typing import List
 
 from helpers.filedownloader import try_download_file, __is_downloadable__, __smaler_then_max_size__, __get_file_name_from_header__, __size_from_header__
 
+import helpers.requests_helper as requests_helper
+
+
 path = "config.ini"
 
 CONFIG = configparser.ConfigParser()
@@ -302,84 +305,64 @@ class MoodleCourse():
         return s
 
 class Moodle():    
-    session : requests.sessions.Session = requests.session()
-
-    moodel_courses : List[MoodleCourse] = []
-
-    download_path : str = None
+    session : requests.sessions.Session = None
+    moodel_courses : List[MoodleCourse] = [] # a list of MoodleCourse objects
+    download_path : str = None # path to download files
 
     def __init__(self, config_path : str = "config.ini") -> None:
-        """Initialize the moodel class with the given config file"""
+        """Initialize the Moodle class with the given config file"""
         path = config_path
-        CONFIG.read(path)
+        CONFIG.read(path) # read config file
+        self.session = requests_helper.get_session() # get a session object
 
-        self.download_path = CONFIG["LOGIN"]["download_path"]
+        self.download_path = CONFIG["LOGIN"]["download_path"] # set the download path
+        self.base_url = CONFIG['MOODLE_URLS']['base_url'] # set the base url
 
-        self.base_url = CONFIG['MOODLE_URLS']['base_url']
-        
-        self.__get_login_token__()
-        if not self.login():
-            print(f"{bcolors.FAIL}Error: Failed to login. Maby the username or password is wrong?{bcolors.ENDC}")
+        self.__get_login_token__() # get the login token
+        if not self.login(): # if login fails, exit the program
+            print(f"{bcolors.FAIL}Error: Failed to login. Maybe the username or password is wrong?{bcolors.ENDC}")
             sys.exit(1)
         else:
             print(f"{bcolors.OKGREEN}Login successful!{bcolors.ENDC}")
         
-        self.__get_courses__()
+        self.__get_courses__() # get a list of all courses
 
-    def __get_login_token__(self):
+    def __get_login_token__(self) -> None:
         """Get the login token from the login page"""
-        login_url = self.base_url + CONFIG["MOODLE_URLS"]["login_url"]
-        r = __get_request__(login_url, self.session)
+        login_url = self.base_url + CONFIG["MOODLE_URLS"]["login_url"] # set the login url
+        r = requests_helper.get_request(login_url, self.session) # send a GET request to the login url
         if r.ok:
-            soup = bs4.BeautifulSoup(r.text, "html.parser")
-            token = soup.find(id='login').find('input', {'name': 'logintoken'})['value']
+            soup = bs4.BeautifulSoup(r.text, "html.parser") # parse the HTML content
+            token = soup.find(id='login').find('input', {'name': 'logintoken'})['value'] # find the login token
         self.token = token
     
-    def login(self):
-        """Login to moodle and return True if login was successful"""
-        login_url = self.base_url + CONFIG["MOODLE_URLS"]["login_url"]
+    def login(self) -> bool:
+        """Login to Moodle and return True if login was successful"""
+        login_url = self.base_url + CONFIG["MOODLE_URLS"]["login_url"] # set the login url
         login_data = {
-            "username": CONFIG["LOGIN"]["user"],
-            "password": CONFIG["LOGIN"]["pwd"],
-            "logintoken": self.token
+            "username": CONFIG["LOGIN"]["user"], # get the username from config file
+            "password": CONFIG["LOGIN"]["pwd"], # get the password from config file
+            "logintoken": self.token # set the login token
         }
-        r = __post_request__(login_url, login_data, self.session)
-        if r.ok: # dose not check if the login was successful Need to be fixed
+        r = __post_request__(login_url, login_data, self.session) # send a POST request to the login url with login data
+        if r.ok: # if the response is okay, login was successful
             return True
         else:
             return False
         
     def __get_courses__(self):
-        """Get a list of all courses urls"""
+        """Get a list of all courses URLs"""
         courses_urls = []
 
-        courses_url = self.base_url + CONFIG["MOODLE_URLS"]["courses_url"]
+        courses_url = self.base_url + CONFIG["MOODLE_URLS"]["courses_url"] # set the courses url
 
-        r = __get_request__(courses_url, self.session)
+        r = __get_request__(courses_url, self.session) # send a GET request to the courses url
 
         if r.ok:
             result = __bs_find_serach__(r.text, CONFIG["MOODLE_COURSES"]["region_tag"], CONFIG["MOODLE_COURSES"]["region_type"], CONFIG["MOODLE_COURSES"]["region_type_value"])
             result = __bs_find_all_search__(str(result), CONFIG["MOODLE_COURSES"]["course_tag"], CONFIG["MOODLE_COURSES"]["course_type"], CONFIG["MOODLE_COURSES"]["course_type_value"])
             for course in result:
-                courses_urls.append({"name": course.text, "links": [course['href']]})
-        else:
-            print("Error: Failed to get courses")
-            sys.exit(1)
-        
-        course = courses_urls[0]
-        moodle_course = MoodleCourse(course["name"], course["links"][0], self.session)
-        self.moodel_courses.append(moodle_course)
-        for course in courses_urls:
-            print(f"{bcolors.FAIL}Start downloading course: " + course["name"] + f"{bcolors.ENDC}")
-            moodle_course = MoodleCourse(course["name"], course["links"][0], self.session)
-          
-            self.moodel_courses.append(moodle_course)
-    
-    def __str__(self) -> str:
-        s = ""
-        for course in self.moodel_courses:
-            s += f"{course}"
-        return s
+                courses_urls
 
 if __name__ == "__main__":
     m = Moodle()

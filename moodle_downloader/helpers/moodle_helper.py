@@ -1,11 +1,22 @@
 import requests, re, bs4, sys, enum
 
+from configparser import ConfigParser
 # Import the filedownloader module from the helpers package if it exists,
 # otherwise import it from the current directory.
 try:
     import helpers.filedownloader as filedownloader
 except ModuleNotFoundError:
     import filedownloader as filedownloader
+
+def config_wrapper(C : ConfigParser, keyword, base, suffix = ["_tag", "_type", "_type_value"]):
+    """ Wrapper for the config function. This function is used to get the tag, type and type_value from the
+        config file. The type is the name of the config section. The base is the name of the config option. 
+        The suffix is a list of suffixes for the config options. The suffixes are appended to the base to get
+        the full name of the config option. The suffixes are in the order tag, type and type_value."""
+    return_list = []
+    for s in suffix:
+        return_list.append(C[C][base+s])
+    return return_list
 
 def __bs_find_serach__(html_text, tag, type, type_value) -> bs4.element.ResultSet:
     """Find all tags with the given type and type_value"""
@@ -29,31 +40,35 @@ def __bs_find_all_search__(html_text, tag, type, type_value) -> bs4.element.Resu
         raise Exception("Tag can't be empty")
     return soup.find_all(tag, search)
 
-def __get_request__(url, session, discard = True) -> requests.models.Response:
-    """Send a get request to the given url"""
-    r = Response()
-    try:
-        r = session.get(url)
-    except requests.exceptions.ConnectionError:
-        # Print an error message if the connection fails.
-        print(f"Error: Failed to connect to server. Maby the URL is wrong? {url}")
-        if discard:
-            # Exit the script with an error code if discard is True.
-            sys.exit(1)
-    return r
+def __get_request__(url, session, discard = True):
+    # """Send a get request to the given url"""
+    # r = Response()
+    # try:
+    #     r = session.get(url)
+    # except requests.exceptions.ConnectionError:
+    #     # Print an error message if the connection fails.
+    #     print(f"Error: Failed to connect to server. Maby the URL is wrong? {url}")
+    #     if discard:
+    #         # Exit the script with an error code if discard is True.
+    #         sys.exit(1)
+    # r.html.render()
+    # return r
+    pass
 
-def __post_request__(url, data, session) -> requests.models.Response:
-    """Send a post request to the given url with the given data"""
-    r = None
-    try:
-        r = session.post(url, data=data)
-    except requests.exceptions.ConnectionError:
-        # Print an error message if the connection fails.
-        print("Error: Failed to connect to server. Maby the URL is wrong?")
-        # Exit the script with an error code.
-        sys.exit(1)
-    return r
+def __post_request__(url, data, session):
+    # """Send a post request to the given url with the given data"""
+    # r = None
+    # try:
+    #     r = session.post(url, data=data)
+    # except requests.exceptions.ConnectionError:
+    #     # Print an error message if the connection fails.
+    #     print("Error: Failed to connect to server. Maby the URL is wrong?")
+    #     # Exit the script with an error code.
+    #     sys.exit(1)
+    # r.html.render(reload=True, retries = 3, wait=1)
+    # return r
 
+    pass
 def __check_if_valid_url__(url) -> bool:
     """Check if the given url is valid"""
     if url == None or url == "":
