@@ -1,8 +1,8 @@
 [LOGIN]
 user = user
 pwd = pwd
-account_path = account.json
 download_path = downloads/
+
 [MOODLE_URLS]
 base_url = https://moodle.rbz-technik.de/
 login_url = login/index.php
